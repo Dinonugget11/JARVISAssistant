@@ -59,6 +59,28 @@ object CommandEngine {
                     JarvisCommand.CreateReminder(text, hour, minute)
                 }
 
+                "CREATE_CALENDAR_EVENT", "CREATE_EVENT", "ADD_EVENT" -> {
+                    val title = json.optString("title").takeIf { it.isNotBlank() } ?: return null
+                    val date = json.optString("date").trim()
+                    val parts = date.split("-")
+                    if (parts.size != 3) return null
+                    val year = parts[0].toIntOrNull() ?: return null
+                    val month = parts[1].toIntOrNull() ?: return null
+                    val day = parts[2].toIntOrNull() ?: return null
+                    val hour = json.optInt("hour", -1)
+                    val minute = json.optInt("minute", 0)
+                    if (year !in 2000..2100 || month !in 1..12 || day !in 1..31) return null
+                    if (hour !in 0..23 || minute !in 0..59) return null
+                    val duration = json.optInt("duration_minutes", 60).coerceIn(5, 24 * 60)
+                    // Non-lenient calendar: an impossible date (e.g. Feb 31) throws here and the
+                    // surrounding catch turns it into null instead of silently rolling to March.
+                    val cal = java.util.Calendar.getInstance()
+                    cal.isLenient = false
+                    cal.clear()
+                    cal.set(year, month - 1, day, hour, minute, 0)
+                    JarvisCommand.CreateCalendarEvent(title, date, hour, minute, cal.timeInMillis, duration)
+                }
+
                 "SHARE_TEXT" -> json.optString("text").takeIf { it.isNotBlank() }
                     ?.let { JarvisCommand.ShareText(it) }
 

@@ -16,6 +16,17 @@ sealed class JarvisCommand {
     data class SetAlarm(val hour: Int, val minute: Int, val label: String?) : JarvisCommand()
     data class SetTimer(val seconds: Int, val label: String?) : JarvisCommand()
     data class CreateReminder(val text: String, val hour: Int, val minute: Int) : JarvisCommand()
+
+    /** Opens the Calendar app with a new event already filled in; the user taps Save there. */
+    data class CreateCalendarEvent(
+        val title: String,
+        val date: String, // "YYYY-MM-DD"
+        val hour: Int,
+        val minute: Int,
+        val startMillis: Long,
+        val durationMinutes: Int
+    ) : JarvisCommand()
+
     data class ShareText(val text: String) : JarvisCommand()
     data class AdjustVolume(val directionUp: Boolean, val stream: String) : JarvisCommand()
     data class Remember(val content: String) : JarvisCommand()
@@ -228,6 +239,8 @@ fun JarvisCommand.requiresConfirmation(): Boolean = when (this) {
     JarvisCommand.OpenContacts,
     JarvisCommand.OpenCalendar,
     JarvisCommand.OpenClock,
+    // The Calendar app itself asks the user to tap Save, which is the confirmation step.
+    is JarvisCommand.CreateCalendarEvent,
     is JarvisCommand.AdjustVolume,
     is JarvisCommand.Remember,
     JarvisCommand.GoHome,
@@ -317,6 +330,7 @@ fun JarvisCommand.describe(): String = when (this) {
     is JarvisCommand.SetAlarm -> "Set an alarm for %02d:%02d%s?".format(hour, minute, label?.let { " ($it)" } ?: "")
     is JarvisCommand.SetTimer -> "Start a $seconds second timer${label?.let { " ($it)" } ?: ""}?"
     is JarvisCommand.CreateReminder -> "Create reminder \"$text\" at %02d:%02d?".format(hour, minute)
+    is JarvisCommand.CreateCalendarEvent -> "Add \"$title\" to the calendar on $date at ${"%02d:%02d".format(hour, minute)}?"
     is JarvisCommand.ShareText -> "Share this text?"
     is JarvisCommand.AdjustVolume -> "Turn $stream volume ${if (directionUp) "up" else "down"}?"
     is JarvisCommand.Remember -> "Remembered."

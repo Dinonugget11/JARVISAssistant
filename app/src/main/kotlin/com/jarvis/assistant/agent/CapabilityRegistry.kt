@@ -18,7 +18,7 @@ import com.jarvis.assistant.util.NetworkMonitor
 enum class Tool {
     OPEN_APP, OPEN_SETTINGS, OPEN_CAMERA, OPEN_BROWSER, OPEN_MAPS, OPEN_DIALER,
     OPEN_CONTACTS, OPEN_CALENDAR, OPEN_CLOCK,
-    SET_ALARM, SET_TIMER, CREATE_REMINDER, SHARE_TEXT, ADJUST_VOLUME,
+    SET_ALARM, SET_TIMER, CREATE_REMINDER, CREATE_CALENDAR_EVENT, SHARE_TEXT, ADJUST_VOLUME,
     SAVE_TEXT_FILE,
     GO_HOME, GO_BACK, OPEN_RECENTS, MEDIA_CONTROL,
     READ_SCREEN, READ_NOTIFICATIONS,
@@ -59,6 +59,7 @@ class CapabilityRegistry(private val context: Context, private val securePrefs: 
             intentBased(Tool.OPEN_BROWSER), intentBased(Tool.OPEN_MAPS), intentBased(Tool.OPEN_DIALER),
             intentBased(Tool.OPEN_CONTACTS), intentBased(Tool.OPEN_CALENDAR), intentBased(Tool.OPEN_CLOCK),
             intentBased(Tool.SET_ALARM), intentBased(Tool.SET_TIMER), intentBased(Tool.CREATE_REMINDER),
+            intentBased(Tool.CREATE_CALENDAR_EVENT),
             intentBased(Tool.SHARE_TEXT), intentBased(Tool.ADJUST_VOLUME), intentBased(Tool.SAVE_TEXT_FILE),
             intentBased(Tool.GO_HOME), intentBased(Tool.MEDIA_CONTROL),
             CapabilityStatusEntry(

@@ -60,6 +60,7 @@ class AndroidActionExecutor(private val context: Context, private val securePref
             is JarvisCommand.SetAlarm -> setAlarm(command)
             is JarvisCommand.SetTimer -> setTimer(command)
             is JarvisCommand.CreateReminder -> createReminder(command)
+            is JarvisCommand.CreateCalendarEvent -> createCalendarEvent(command)
             is JarvisCommand.ShareText -> shareText(command.text)
             is JarvisCommand.AdjustVolume -> adjustVolume(command)
             is JarvisCommand.Remember -> ExecutionResult.Success("Remembered.")
@@ -216,6 +217,22 @@ class AndroidActionExecutor(private val context: Context, private val securePref
     private fun openCalendar(): ExecutionResult {
         val uri = CalendarContract.CONTENT_URI.buildUpon().appendPath("time").build()
         return launch(Intent(Intent.ACTION_VIEW, uri))
+    }
+
+    /** Opens the system Calendar's "new event" screen pre-filled; the user taps Save there.
+     * No calendar permission is needed because JARVIS never writes to the calendar itself. */
+    private fun createCalendarEvent(command: JarvisCommand.CreateCalendarEvent): ExecutionResult {
+        val intent = Intent(Intent.ACTION_INSERT).apply {
+            data = CalendarContract.Events.CONTENT_URI
+            putExtra(CalendarContract.Events.TITLE, command.title)
+            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, command.startMillis)
+            putExtra(
+                CalendarContract.EXTRA_EVENT_END_TIME,
+                command.startMillis + command.durationMinutes * 60_000L
+            )
+        }
+        launch(intent)
+        return ExecutionResult.Success("Calendar is open with \"${command.title}\". Tap Save to add it.")
     }
 
     private fun setAlarm(command: JarvisCommand.SetAlarm): ExecutionResult {

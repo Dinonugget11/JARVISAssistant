@@ -33,6 +33,7 @@ enum class AgentDomain(val label: String) {
             is JarvisCommand.OpenApp, is JarvisCommand.OpenSettings, JarvisCommand.OpenCamera,
             is JarvisCommand.OpenBrowser, JarvisCommand.OpenCalendar, JarvisCommand.OpenClock,
             is JarvisCommand.SetAlarm, is JarvisCommand.SetTimer, is JarvisCommand.CreateReminder,
+            is JarvisCommand.CreateCalendarEvent,
             is JarvisCommand.AdjustVolume, JarvisCommand.EnablePhoneControl, JarvisCommand.GoHome,
             JarvisCommand.GoBack, JarvisCommand.OpenRecentApps, JarvisCommand.CloseCurrentApp,
             JarvisCommand.EnableNotificationAccess, JarvisCommand.ListInstalledApps,

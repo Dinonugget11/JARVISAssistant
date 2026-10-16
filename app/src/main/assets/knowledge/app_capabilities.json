@@ -2,7 +2,7 @@
   {
     "id": "capabilities_can_do",
     "topic": "What JARVIS can do",
-    "content": "JARVIS can open apps and settings, place calls to a dialed number, open the camera/maps/contacts/calendar/clock, set alarms/timers/reminders, adjust volume, share text, control media playback, read the current screen or notifications back, save generated text/code as a real file, control the live-wallpaper HUD, hold conversation, answer questions (with a web search when the answer needs current information), and — with the Accessibility permission and confirmation — automate steps inside other apps such as sending a WhatsApp message.",
+    "content": "JARVIS can open apps and settings, place calls to a dialed number, open the camera/maps/contacts/calendar/clock, set alarms/timers/reminders, create calendar events (the Calendar opens with the event pre-filled and the user taps Save), adjust volume, share text, control media playback, read the current screen or notifications back, save generated text/code as a real file, control the live-wallpaper HUD, hold conversation, answer questions (with a web search when the answer needs current information), and — with the Accessibility permission and confirmation — automate steps inside other apps such as sending a WhatsApp message.",
     "keywords": ["what can you do", "jarvis capabilities", "what can jarvis do"]
   },
   {

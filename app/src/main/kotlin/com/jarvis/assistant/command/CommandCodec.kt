@@ -20,6 +20,7 @@ object CommandCodec {
         is JarvisCommand.SetAlarm -> JSONObject().put("type", "SET_ALARM").put("hour", command.hour).put("minute", command.minute).putOpt("label", command.label)
         is JarvisCommand.SetTimer -> JSONObject().put("type", "SET_TIMER").put("seconds", command.seconds).putOpt("label", command.label)
         is JarvisCommand.CreateReminder -> JSONObject().put("type", "CREATE_REMINDER").put("text", command.text).put("hour", command.hour).put("minute", command.minute)
+        is JarvisCommand.CreateCalendarEvent -> JSONObject().put("type", "CREATE_CALENDAR_EVENT").put("title", command.title).put("date", command.date).put("hour", command.hour).put("minute", command.minute).put("duration_minutes", command.durationMinutes)
         is JarvisCommand.ShareText -> JSONObject().put("type", "SHARE_TEXT").put("text", command.text)
         is JarvisCommand.AdjustVolume -> JSONObject().put("type", "ADJUST_VOLUME").put("direction", if (command.directionUp) "up" else "down").put("stream", command.stream)
         is JarvisCommand.Remember -> JSONObject().put("type", "REMEMBER").put("content", command.content)

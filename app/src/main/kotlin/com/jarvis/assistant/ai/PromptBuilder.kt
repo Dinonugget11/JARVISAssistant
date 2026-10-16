@@ -41,6 +41,11 @@ object PromptBuilder {
         appendLine()
         appendLine(PromptComponents.responseStyle())
         appendLine()
+        // The model has no clock of its own; without this it cannot resolve "tomorrow" or "Friday".
+        val nowText = java.text.SimpleDateFormat("EEEE, yyyy-MM-dd HH:mm", java.util.Locale.US)
+            .format(java.util.Date())
+        appendLine("TODAY'S DATE AND TIME (device clock, ${java.util.TimeZone.getDefault().id}): $nowText")
+        appendLine()
         appendLine(AVAILABLE_TOOLS)
         appendLine()
         if (knowledgeContext.isNotBlank()) {
@@ -82,6 +87,7 @@ object PromptBuilder {
         - {"type":"SET_ALARM","hour":<0-23>,"minute":<0-59>,"label":"<optional>"}
         - {"type":"SET_TIMER","seconds":<int>,"label":"<optional>"}
         - {"type":"CREATE_REMINDER","text":"<reminder text>","hour":<0-23>,"minute":<0-59>}
+        - {"type":"CREATE_CALENDAR_EVENT","title":"<event title>","date":"YYYY-MM-DD","hour":<0-23>,"minute":<0-59>,"duration_minutes":<optional int, default 60>} — use this when the user asks to add, create or schedule an event, meeting or appointment on a specific day ("agrega un evento el viernes a las 3"). It opens the Calendar with the event pre-filled and the user taps Save, so never claim the event was already saved. Work out relative dates ("mañana", "el viernes", "next Monday") from TODAY'S DATE AND TIME. Use CREATE_REMINDER only for alarm-style reminders, never for calendar events.
         - {"type":"SHARE_TEXT","text":"<text to share>"}
         - {"type":"ADJUST_VOLUME","direction":"up|down","stream":"media"}
         - {"type":"REMEMBER","content":"<fact to remember, only when user explicitly says to remember it>"}

@@ -37,6 +37,7 @@ data class SettingsState(
     val language: String = "auto",
     val speechRate: Float = 1.0f,
     val wakeWordEnabled: Boolean = false,
+    val picovoiceKey: String = "",
     val voiceName: String? = null,
     val voices: List<JarvisVoice> = emptyList(),
     val aiConfigured: Boolean = false,
@@ -69,6 +70,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             language = prefs.preferredLanguage,
             speechRate = prefs.speechRate,
             wakeWordEnabled = prefs.wakeWordEnabled,
+            picovoiceKey = prefs.picovoiceAccessKey.orEmpty(),
             voiceName = prefs.voiceName,
             confirmEveryAction = prefs.confirmEveryAction,
             backgroundJarvisEnabled = prefs.backgroundJarvisEnabled,
@@ -154,6 +156,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         if (enabled && !prefs.backgroundJarvisEnabled) {
             setBackgroundJarvisEnabled(true)
         }
+    }
+
+    fun updatePicovoiceKey(value: String) {
+        prefs.picovoiceAccessKey = value.trim()
+        _state.value = _state.value.copy(picovoiceKey = value.trim())
     }
 
     fun updateVoice(name: String) {

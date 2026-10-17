@@ -115,6 +115,8 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    // Offline wake-word engine ("Jarvis" is a built-in keyword). Needs a free Picovoice AccessKey.
+    implementation("ai.picovoice:porcupine-android:4.0.2")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")

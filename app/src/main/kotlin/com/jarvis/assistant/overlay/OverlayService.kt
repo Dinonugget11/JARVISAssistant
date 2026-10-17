@@ -26,6 +26,7 @@ import com.jarvis.assistant.command.requiresConfirmation
 import com.jarvis.assistant.di.AppContainer
 import com.jarvis.assistant.search.needsWebSearch
 import com.jarvis.assistant.voice.JarvisGlobalState
+import com.jarvis.assistant.voice.PorcupineWakeWord
 import com.jarvis.assistant.voice.SpeechEvent
 import com.jarvis.assistant.voice.VoiceState
 import java.util.concurrent.atomic.AtomicBoolean
@@ -34,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -58,6 +60,11 @@ class OverlayService : Service() {
     private var isBusy = false
     private var wakeWordJob: Job? = null
 
+    /** Offline wake-word engine, used only when a Picovoice AccessKey is set in Settings. */
+    private lateinit var porcupine: PorcupineWakeWord
+    private val wakeSignal = Channel<Unit>(Channel.CONFLATED)
+    private var porcupineFailed = false
+
     /** A command awaiting a spoken "haan"/"yes" or "nahi"/"no" from the user. */
     private var pendingConfirmation: JarvisCommand? = null
     private var pendingPlan: List<JarvisCommand>? = null
@@ -69,6 +76,7 @@ class OverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         container = (applicationContext as JarvisApplication).container
+        porcupine = PorcupineWakeWord(applicationContext)
         startForegroundNotification()
         installAutomationVoiceFeedback()
         startWakeWordLoop()
@@ -81,6 +89,7 @@ class OverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         wakeWordJob?.cancel()
+        porcupine.stop()
         com.jarvis.assistant.accessibility.JarvisAccessibilityService.onStepEvent = null
         serviceScope.cancel()
         container.voiceActivityDetector.stop()
@@ -145,6 +154,7 @@ class OverlayService : Service() {
             var consecutiveSpeechErrors = 0
             while (isActive) {
                 if (!container.securePrefs.wakeWordEnabled || isBusy) {
+                    if (!container.securePrefs.wakeWordEnabled) porcupine.stop()
                     delay(700)
                     continue
                 }
@@ -168,6 +178,44 @@ class OverlayService : Service() {
                     delay(5000)
                     continue
                 }
+
+                // Preferred path: offline Porcupine "Jarvis" detector (no beeps, low battery).
+                val accessKey = container.securePrefs.picovoiceAccessKey
+                if (!accessKey.isNullOrBlank() && !porcupineFailed) {
+                    if (!porcupine.isRunning) {
+                        wakeSignal.tryReceive() // drop stale detections
+                        val err = porcupine.start(
+                            accessKey,
+                            onDetected = { wakeSignal.trySend(Unit) },
+                            onError = { porcupine.stop() } // loop restarts it on the next pass
+                        )
+                        if (err != null) {
+                            porcupineFailed = true
+                            isBusy = true
+                            try {
+                                speakStatus("The offline wake word could not start. $err. Using standard listening instead.")
+                            } finally {
+                                isBusy = false
+                            }
+                            continue
+                        }
+                        setState(VoiceState.IDLE)
+                    }
+                    val detected = withTimeoutOrNull(1000) { wakeSignal.receive() }
+                    if (detected == null || isBusy || !container.securePrefs.wakeWordEnabled) continue
+                    // Porcupine owns the microphone; release it so SpeechRecognizer can listen.
+                    porcupine.stop()
+                    isBusy = true
+                    try {
+                        runVoiceTurn()
+                    } finally {
+                        isBusy = false
+                        setState(VoiceState.IDLE)
+                    }
+                    delay(400)
+                    continue
+                }
+                porcupine.stop()
 
                 var heard: String? = null
                 var sawError = false
@@ -293,7 +341,10 @@ class OverlayService : Service() {
                     if (event is SpeechEvent.FinalResult) finalText = event.text
                 }
                 // First turn after a bare "Jarvis" needs no wake word; later turns do.
-                if (currentDepth == 0) finalText?.takeIf { it.isNotBlank() } else acceptFollowUp(finalText)
+                if (currentDepth == 0) {
+                    finalText?.takeIf { it.isNotBlank() }
+                        ?.let { extractAfterWakeWord(it) ?: it }?.takeIf { it.isNotBlank() }
+                } else acceptFollowUp(finalText)
             } ?: return
             val bargedIn = processCommand(text)
             if (!bargedIn) return

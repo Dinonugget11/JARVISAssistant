@@ -253,6 +253,21 @@ fun SettingsScreen(onOpenDashboard: () -> Unit = {}, onOpenPermissions: () -> Un
             }
             Switch(checked = state.wakeWordEnabled, onCheckedChange = viewModel::updateWakeWord)
         }
+        Text(
+            "Optional, recommended: a free Picovoice AccessKey (console.picovoice.ai) makes \"Jarvis\" " +
+                "detection run offline — no beeps, much less battery. Leave empty to use the standard " +
+                "speech recognizer (it beeps). Restart Background JARVIS after changing it.",
+            color = JarvisTextSecondary,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+        OutlinedTextField(
+            value = state.picovoiceKey,
+            onValueChange = viewModel::updatePicovoiceKey,
+            label = { Text("Picovoice AccessKey (wake word)") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)
+        )
 
         SectionLabel("Automation")
         Row(

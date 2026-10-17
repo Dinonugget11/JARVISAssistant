@@ -223,7 +223,7 @@ class OverlayService : Service() {
                                     container.speechToTextManager.listen(languageTag = null).collect { event ->
                                         if (event is SpeechEvent.FinalResult) followUp = event.text
                                     }
-                                    followUp?.takeIf { it.isNotBlank() }
+                                    acceptFollowUp(followUp)
                                 } ?: break
                                 bargedIn = processCommand(t)
                                 depth++
@@ -292,7 +292,8 @@ class OverlayService : Service() {
                 container.speechToTextManager.listen(languageTag = null).collect { event ->
                     if (event is SpeechEvent.FinalResult) finalText = event.text
                 }
-                finalText?.takeIf { it.isNotBlank() }
+                // First turn after a bare "Jarvis" needs no wake word; later turns do.
+                if (currentDepth == 0) finalText?.takeIf { it.isNotBlank() } else acceptFollowUp(finalText)
             } ?: return
             val bargedIn = processCommand(text)
             if (!bargedIn) return
@@ -535,9 +536,21 @@ class OverlayService : Service() {
                 if (event is SpeechEvent.FinalResult) followUp = event.text
             }
         }
-        val heard = followUp?.takeIf { it.isNotBlank() } ?: return false
+        val heard = acceptFollowUp(followUp) ?: return false
         pendingFollowUpText = heard
         return true
+    }
+
+    /**
+     * Gate for speech captured WITHOUT the wake word (the follow-up window after JARVIS speaks,
+     * and barge-in). Open-mic noise, TV or other people used to be executed as commands. Now such
+     * speech is only accepted when JARVIS is waiting for a yes/no answer; otherwise the user must
+     * say "Jarvis" again. Returns the text to process, or null to ignore it.
+     */
+    private fun acceptFollowUp(raw: String?): String? {
+        val text = raw?.takeIf { it.isNotBlank() } ?: return null
+        if (pendingConfirmation != null || pendingPlan != null) return text
+        return extractAfterWakeWord(text)?.takeIf { it.isNotBlank() }
     }
 
     private fun failureGuidance(message: String): String {

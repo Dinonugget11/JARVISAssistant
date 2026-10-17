@@ -73,6 +73,12 @@ class SecurePrefs(context: Context) {
         get() = prefs.getString(KEY_VOICE_NAME, null)
         set(value) = prefs.edit().putString(KEY_VOICE_NAME, value).apply()
 
+    /** Free Picovoice Console AccessKey. When set, the hands-free "Jarvis" wake word uses the
+     * offline Porcupine engine (no beeps, low battery) instead of looping the speech recognizer. */
+    var picovoiceAccessKey: String?
+        get() = prefs.getString(KEY_PICOVOICE_ACCESS_KEY, null)
+        set(value) = prefs.edit().putString(KEY_PICOVOICE_ACCESS_KEY, value).apply()
+
     var wakeWordEnabled: Boolean
         get() = prefs.getBoolean(KEY_WAKE_WORD, false)
         set(value) = prefs.edit().putBoolean(KEY_WAKE_WORD, value).apply()
@@ -168,6 +174,7 @@ class SecurePrefs(context: Context) {
         private const val KEY_VOICE_PITCH = "voice_pitch"
         private const val KEY_VOICE_NAME = "voice_name"
         private const val KEY_WAKE_WORD = "wake_word_enabled"
+        private const val KEY_PICOVOICE_ACCESS_KEY = "picovoice_access_key"
         private const val KEY_CONFIRM_EVERY_ACTION = "confirm_every_action"
         private const val KEY_BACKGROUND_JARVIS = "background_jarvis_enabled"
         private const val KEY_SCREEN_AUTOMATION = "screen_automation_enabled"
